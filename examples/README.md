@@ -32,7 +32,7 @@ python examples/02_batch_fetch.py
 确保已安装 finshare：
 
 ```bash
-pip install meepo-finshare
+pip install finshare
 ```
 
 或从源码安装：

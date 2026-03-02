@@ -11,9 +11,9 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/pypi/v/meepo-finshare" alt="PyPI"/>
+    <img src="https://img.shields.io/pypi/v/finshare" alt="PyPI"/>
     <img src="https://img.shields.io/github/stars/finvfamily/finshare" alt="Stars"/>
-    <img src="https://img.shields.io/pypi/dm/meepo-finshare" alt="Downloads"/>
+    <img src="https://img.shields.io/pypi/dm/finshare" alt="Downloads"/>
     <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python"/>
     <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"/>
   </p>
@@ -50,10 +50,10 @@ print(f"最新价: {snapshot.last_price}")
 ## 📦 安装
 
 ```bash
-pip install meepo-finshare
+pip install finshare
 ```
 
-**注意**: 包名为 `meepo-finshare`，但导入时使用 `finshare`：
+**注意**: 包名为 `finshare`，但导入时使用 `finshare`：
 
 ```python
 import finshare
@@ -158,7 +158,7 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 - **官方网站**: https://meepoquant.com
 - **GitHub**: https://github.com/finvfamily/finshare
-- **PyPI**: https://pypi.org/project/meepo-finshare
+- **PyPI**: https://pypi.org/project/finshare
 - **问题反馈**: https://github.com/finvfamily/finshare/issues
 
 ---

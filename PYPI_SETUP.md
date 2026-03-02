@@ -59,10 +59,10 @@ gh release create v0.1.1 --title "v0.1.1" --notes "Bug fixes"
 
 发布成功后：
 
-1. 访问 PyPI 查看: https://pypi.org/project/meepo-finshare/
+1. 访问 PyPI 查看: https://pypi.org/project/finshare/
 2. 测试安装:
    ```bash
-   pip install meepo-finshare
+   pip install finshare
    python -c "import finshare; print(finshare.__version__)"
    ```
 

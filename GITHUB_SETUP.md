@@ -89,7 +89,7 @@ git push -u origin main
 
      ### 📦 安装
      ```bash
-     pip install meepo-finshare
+     pip install finshare
      ```
 
      ### 🚀 快速开始
