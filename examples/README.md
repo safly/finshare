@@ -77,6 +77,35 @@ python examples/06_async_usage.py
 python examples/07_cache_usage.py
 ```
 
+### 08_hk_stock.py
+港股数据示例，演示如何：
+- 获取港股实时快照
+- 获取港股历史K线
+
+```bash
+python examples/08_hk_stock.py
+```
+
+### 09_future_data.py
+期货数据示例，演示如何：
+- 获取期货历史K线
+- 获取期货实时快照
+- 批量获取期货数据
+
+```bash
+python examples/09_future_data.py
+```
+
+### 10_fund_data.py
+基金数据示例，演示如何：
+- 获取基金净值数据
+- 获取基金基本信息
+- 批量获取多只基金净值
+
+```bash
+python examples/10_fund_data.py
+```
+
 ## 运行示例
 
 ### 前提条件

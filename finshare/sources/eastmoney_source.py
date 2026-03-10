@@ -666,3 +666,309 @@ class EastMoneyDataSource(BaseDataSource):
                 continue
 
         return minute_list
+
+    # ============ 证券列表接口 ============
+
+    def get_stock_list(self, market: str = "all", limit: int = 0) -> List[dict]:
+        """
+        获取A股股票列表
+
+        Args:
+            market: 市场类型 (all: 全部, sh: 上海, sz: 深圳)
+            limit: 限制返回数量，0表示获取全部
+
+        Returns:
+            股票列表，每只股票包含代码、名称等信息
+
+        Examples:
+            >>> source = EastMoneyDataSource()
+            >>> stocks = source.get_stock_list()
+            >>> print(f"共有 {len(stocks)} 只股票")
+        """
+        try:
+            # 东方财富股票列表API
+            url = "http://28.push2.eastmoney.com/api/qt/clist/get"
+
+            # 确定市场参数
+            if market == "sh":
+                fs_param = "m:1+t:23,m:1+t:80"  # 上海主板
+            elif market == "sz":
+                fs_param = "m:0+t:6,m:0+t:80"  # 深圳主板
+            else:
+                fs_param = "m:0+t:6,m:0+t:80,m:1+t:23,m:1+t:80"  # 全部
+
+            # 获取所有数据（分页获取）
+            all_stocks = []
+            page = 1
+            page_size = 5000  # 每次最多获取5000条
+
+            while True:
+                params = {
+                    "pn": page,
+                    "pz": page_size,
+                    "po": 1,
+                    "np": 1,
+                    "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+                    "fltt": 2,
+                    "invt": 2,
+                    "fid": "f3",
+                    "fs": fs_param,
+                    "fields": "f1,f2,f3,f4,f5,f6,f7,f12,f13,f14,f15,f16,f17,f18",
+                }
+
+                response_data = self._make_request(url, params)
+
+                if not response_data:
+                    break
+
+                stocks = self._parse_stock_list(response_data)
+                if not stocks:
+                    break
+
+                all_stocks.extend(stocks)
+
+                # 检查是否需要继续获取
+                if limit > 0 and len(all_stocks) >= limit:
+                    all_stocks = all_stocks[:limit]
+                    break
+
+                # 如果返回数据少于page_size，说明已经是最后一页
+                if len(stocks) < page_size:
+                    break
+
+                page += 1
+
+            logger.info(f"获取股票列表成功: {len(all_stocks)} 只")
+            return all_stocks
+
+        except Exception as e:
+            logger.error(f"获取股票列表失败: {e}")
+            return []
+
+    def get_etf_list(self, limit: int = 0) -> List[dict]:
+        """
+        获取ETF基金列表
+
+        Args:
+            limit: 限制返回数量，0表示获取全部
+
+        Returns:
+            ETF列表，每只ETF包含代码、名称等信息
+        """
+        try:
+            url = "http://28.push2.eastmoney.com/api/qt/clist/get"
+
+            # 获取所有数据（分页获取）
+            all_etfs = []
+            page = 1
+            page_size = 5000
+
+            while True:
+                params = {
+                    "pn": page,
+                    "pz": page_size,
+                    "po": 1,
+                    "np": 1,
+                    "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+                    "fltt": 2,
+                    "invt": 2,
+                    "fid": "f3",
+                    "fs": "m:0+t:6,m:1+t:23",  # 沪深ETF
+                    "fields": "f1,f2,f3,f4,f5,f6,f7,f12,f13,f14,f15,f16,f17,f18",
+                }
+
+                response_data = self._make_request(url, params)
+
+                if not response_data:
+                    break
+
+                etfs = self._parse_stock_list(response_data)
+                if not etfs:
+                    break
+
+                all_etfs.extend(etfs)
+
+                if limit > 0 and len(all_etfs) >= limit:
+                    all_etfs = all_etfs[:limit]
+                    break
+
+                if len(etfs) < page_size:
+                    break
+
+                page += 1
+
+            logger.info(f"获取ETF列表成功: {len(all_etfs)} 只")
+            return all_etfs
+
+        except Exception as e:
+            logger.error(f"获取ETF列表失败: {e}")
+            return []
+
+    def get_lof_list(self, limit: int = 0) -> List[dict]:
+        """
+        获取LOF基金列表
+
+        Args:
+            limit: 限制返回数量，0表示获取全部
+
+        Returns:
+            LOF列表，每只LOF包含代码、名称等信息
+        """
+        try:
+            url = "http://28.push2.eastmoney.com/api/qt/clist/get"
+
+            # 获取所有数据（分页获取）
+            all_lofs = []
+            page = 1
+            page_size = 5000
+
+            while True:
+                params = {
+                    "pn": page,
+                    "pz": page_size,
+                    "po": 1,
+                    "np": 1,
+                    "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+                    "fltt": 2,
+                    "invt": 2,
+                    "fid": "f3",
+                    "fs": "m:1+t:24",  # LOF
+                    "fields": "f1,f2,f3,f4,f5,f6,f7,f12,f13,f14,f15,f16,f17,f18",
+                }
+
+                response_data = self._make_request(url, params)
+
+                if not response_data:
+                    break
+
+                lofs = self._parse_stock_list(response_data)
+                if not lofs:
+                    break
+
+                all_lofs.extend(lofs)
+
+                if limit > 0 and len(all_lofs) >= limit:
+                    all_lofs = all_lofs[:limit]
+                    break
+
+                if len(lofs) < page_size:
+                    break
+
+                page += 1
+
+            logger.info(f"获取LOF列表成功: {len(all_lofs)} 只")
+            return all_lofs
+
+        except Exception as e:
+            logger.error(f"获取LOF列表失败: {e}")
+            return []
+
+    def get_future_list(self) -> List[dict]:
+        """
+        获取期货列表
+
+        Returns:
+            期货列表
+        """
+        try:
+            url = "http://push2.eastmoney.com/api/qt/clist/get"
+
+            # 期货筛选
+            params = {
+                "pn": 1,
+                "pz": 500,
+                "po": 1,
+                "np": 1,
+                "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+                "fltt": 2,
+                "invt": 2,
+                "fid": "f3",
+                "fs": "f:2,f:3,f:4,f:5,f:6,f:7,f:8,f:9,f:10,f:11,f:12,f:13,f:14,f:15,f:16,f:17,f:18,f:19,f:20,f:21,f:22,f:23,f:24,f:25,f:26,f:27,f:28,f:29,f:30,f:31,f:32,f:33,f:34,f:35,f:36,f:37,f:38,f:39,f:40,f:41,f:42,f:43,f:44,f:45,f:46,f:47,f:48,f:49,f:50",
+                "fields": "f12,f13,f14",  # 代码, 市场, 名称
+            }
+
+            response_data = self._make_request(url, params)
+
+            if not response_data:
+                logger.warning("期货列表请求无响应")
+                return []
+
+            return self._parse_future_list(response_data)
+
+        except Exception as e:
+            logger.error(f"获取期货列表失败: {e}")
+            return []
+
+    def _parse_stock_list(self, response_data) -> List[dict]:
+        """解析股票/ETF/LOF列表"""
+        try:
+            if isinstance(response_data, str):
+                data = json.loads(response_data)
+            else:
+                data = response_data
+
+            if data.get("data") is None:
+                return []
+
+            diff = data["data"].get("diff", [])
+            results = []
+
+            for item in diff:
+                try:
+                    stock_info = {
+                        "code": item.get("f12"),          # 代码
+                        "name": item.get("f14"),          # 名称
+                        "market": item.get("f13"),        # 市场
+                        "price": item.get("f2"),         # 最新价
+                        "change_pct": item.get("f3"),    # 涨跌幅
+                        "change": item.get("f4"),        # 涨跌额
+                        "volume": item.get("f5"),        # 成交量
+                        "amount": item.get("f6"),        # 成交额
+                        "open": item.get("f17"),         # 开盘价
+                        "high": item.get("f15"),         # 最高价
+                        "low": item.get("f16"),          # 最低价
+                        "close": item.get("f2"),         # 收盘价
+                        "prev_close": item.get("f18"),   # 昨收价
+                    }
+                    results.append(stock_info)
+                except Exception as e:
+                    logger.debug(f"解析股票条目失败: {e}")
+                    continue
+
+            return results
+
+        except Exception as e:
+            logger.error(f"解析股票列表失败: {e}")
+            return []
+
+    def _parse_future_list(self, response_data) -> List[dict]:
+        """解析期货列表"""
+        try:
+            if isinstance(response_data, str):
+                data = json.loads(response_data)
+            else:
+                data = response_data
+
+            if data.get("data") is None:
+                return []
+
+            diff = data["data"].get("diff", [])
+            results = []
+
+            for item in diff:
+                try:
+                    future_info = {
+                        "code": item.get("f12"),     # 代码
+                        "name": item.get("f14"),     # 名称
+                        "market": item.get("f13"),   # 市场
+                    }
+                    results.append(future_info)
+                except Exception as e:
+                    logger.debug(f"解析期货条目失败: {e}")
+                    continue
+
+            return results
+
+        except Exception as e:
+            logger.error(f"解析期货列表失败: {e}")
+            return []

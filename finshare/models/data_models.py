@@ -189,3 +189,168 @@ class DataSourceStatus(BaseModel):
         if not self.cool_down_until:
             return False
         return datetime.now() < self.cool_down_until
+
+
+# ============ 期货数据模型 ============
+
+
+class FutureExchange(str, Enum):
+    """期货交易所"""
+    CFFEX = "cffex"  # 中金所 (股指期货)
+    SHFE = "shfe"    # 上期所 (金属、能源)
+    DCE = "dce"     # 大商所 (农产品)
+    CZCE = "czce"   # 郑商所 (化工、农产品)
+    INE = "ine"     # 上期能源 (原油)
+
+
+class FutureData(BaseModel):
+    """
+    期货历史数据模型
+
+    字段说明:
+    - code: 期货合约代码 (如 IF2409, CU2409)
+    - trade_date: 交易日期
+    - open_price: 开盘价
+    - high_price: 最高价
+    - low_price: 最低价
+    - close_price: 收盘价
+    - volume: 成交量 (手)
+    - amount: 成交额 (元)
+    - open_interest: 持仓量
+    - settle_price: 结算价
+    - pre_settle: 昨结算价
+    """
+
+    code: str = Field(..., description="期货合约代码")
+    trade_date: date = Field(..., description="交易日期")
+    open_price: float = Field(..., description="开盘价")
+    high_price: float = Field(..., description="最高价")
+    low_price: float = Field(..., description="最低价")
+    close_price: float = Field(..., description="收盘价")
+    volume: float = Field(..., description="成交量(手)")
+    amount: Optional[float] = Field(None, description="成交额(元)")
+    open_interest: Optional[float] = Field(None, description="持仓量(手)")
+    settle_price: Optional[float] = Field(None, description="结算价")
+    pre_settle: Optional[float] = Field(None, description="昨结算价")
+
+    # 元数据
+    exchange: FutureExchange = Field(default=FutureExchange.SHFE, description="交易所")
+    contract_name: Optional[str] = Field(None, description="合约名称")
+    data_source: str = Field(default="unknown", description="数据来源")
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        json_encoders={datetime: lambda v: v.isoformat(), date: lambda v: v.isoformat()},
+        extra="ignore",
+    )
+
+    @field_validator("trade_date")
+    def validate_trade_date(cls, v: date) -> date:
+        """验证日期不超过今天"""
+        if v > date.today():
+            raise ValueError("交易日期不能晚于今天")
+        return v
+
+
+class FutureSnapshotData(BaseModel):
+    """
+    期货实时快照数据模型
+
+    字段说明:
+    - code: 期货合约代码
+    - timestamp: 更新时间
+    - last_price: 最新价
+    - bid1_price: 买一价
+    - ask1_price: 卖一价
+    - volume: 成交量
+    - open_interest: 持仓量
+    """
+
+    code: str = Field(..., description="期货合约代码")
+    timestamp: datetime = Field(..., description="更新时间")
+    last_price: float = Field(..., description="最新价")
+    volume: float = Field(0, description="成交量(手)")
+    open_interest: Optional[float] = Field(None, description="持仓量(手)")
+    amount: Optional[float] = Field(None, description="成交额(元)")
+
+    # 盘口
+    bid1_price: Optional[float] = Field(None, description="买一价")
+    ask1_price: Optional[float] = Field(None, description="卖一价")
+    bid1_volume: Optional[float] = Field(None, description="买一量")
+    ask1_volume: Optional[float] = Field(None, description="卖一量")
+
+    # 日内
+    day_high: Optional[float] = Field(None, description="当日最高")
+    day_low: Optional[float] = Field(None, description="当日最低")
+    day_open: Optional[float] = Field(None, description="开盘价")
+    prev_close: Optional[float] = Field(None, description="前收盘价")
+
+    # 元数据
+    exchange: FutureExchange = Field(default=FutureExchange.SHFE, description="交易所")
+    data_source: str = Field(default="unknown", description="数据来源")
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        json_encoders={datetime: lambda v: v.isoformat()},
+        extra="ignore",
+    )
+
+    @property
+    def change(self) -> Optional[float]:
+        """涨跌额"""
+        if self.last_price and self.prev_close:
+            return round(self.last_price - self.prev_close, 2)
+        return None
+
+    @property
+    def change_pct(self) -> Optional[float]:
+        """涨跌幅(%)"""
+        if self.last_price and self.prev_close and self.prev_close != 0:
+            return round((self.last_price - self.prev_close) / self.prev_close * 100, 2)
+        return None
+
+
+# ============ 基金数据模型 ============
+
+
+class FundData(BaseModel):
+    """
+    基金净值数据模型
+
+    字段说明:
+    - code: 基金代码 (如 161039)
+    - name: 基金名称
+    - nav: 单位净值
+    - nav_acc: 累计净值
+    - change: 涨跌额
+    - change_pct: 涨跌幅
+    - nav_date: 净值日期
+    """
+
+    code: str = Field(..., description="基金代码")
+    name: Optional[str] = Field(None, description="基金名称")
+    nav: float = Field(..., description="单位净值")
+    nav_acc: Optional[float] = Field(None, description="累计净值")
+    change: Optional[float] = Field(None, description="涨跌额")
+    change_pct: Optional[float] = Field(None, description="涨跌幅(%)")
+    nav_date: date = Field(..., description="净值日期")
+
+    # 可选字段
+    unit_nav: Optional[float] = Field(None, description="万份收益")
+    accum_nav: Optional[float] = Field(None, description="七日年化收益率(%)")
+
+    # 元数据
+    data_source: str = Field(default="unknown", description="数据来源")
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        json_encoders={datetime: lambda v: v.isoformat(), date: lambda v: v.isoformat()},
+        extra="ignore",
+    )
+
+    @field_validator("nav_date")
+    def validate_nav_date(cls, v: date) -> date:
+        """验证日期不超过今天"""
+        if v > date.today():
+            raise ValueError("净值日期不能晚于今天")
+        return v

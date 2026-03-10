@@ -258,6 +258,249 @@ def get_batch_snapshots(codes: list):
     return manager.get_batch_snapshots(codes)
 
 
+# 期货数据 (延迟导入，避免循环依赖)
+_get_future_kline = None
+_get_future_snapshot = None
+_get_batch_future_snapshots = None
+
+
+def _lazy_import_future():
+    """延迟导入期货数据模块"""
+    global _get_future_kline, _get_future_snapshot, _get_batch_future_snapshots
+    if _get_future_kline is None:
+        from finshare.stock.future import get_future_kline, get_future_snapshot, get_batch_future_snapshots
+        _get_future_kline = get_future_kline
+        _get_future_snapshot = get_future_snapshot
+        _get_batch_future_snapshots = get_batch_future_snapshots
+
+
+def get_future_kline(
+    code: str,
+    start_date: str = None,
+    end_date: str = None,
+    adjustment: str = "none",
+):
+    """
+    获取期货历史K线数据
+
+    Args:
+        code: 期货合约代码 (如 IF2409, CU2409, RB2409)
+              也支持简写: IF0 (沪深300股指当月连续)
+        start_date: 开始日期 (YYYY-MM-DD)
+        end_date: 结束日期 (YYYY-MM-DD)
+        adjustment: 复权类型 (期货不支持，默认none)
+
+    Returns:
+        List[HistoricalData] 历史K线数据列表
+
+    Examples:
+        >>> import finshare as fs
+        >>> data = fs.get_future_kline('IF2409', '2024-01-01', '2024-01-31')
+    """
+    _lazy_import_future()
+    return _get_future_kline(code, start_date, end_date, adjustment)
+
+
+def get_future_snapshot(code: str):
+    """
+    获取期货实时快照数据
+
+    Args:
+        code: 期货合约代码 (如 IF2409, CU2409)
+
+    Returns:
+        FutureSnapshotData 实时快照数据
+
+    Examples:
+        >>> import finshare as fs
+        >>> snapshot = fs.get_future_snapshot('IF2409')
+        >>> print(f"最新价: {snapshot.last_price}")
+    """
+    _lazy_import_future()
+    return _get_future_snapshot(code)
+
+
+def get_batch_future_snapshots(codes: list):
+    """
+    批量获取期货实时快照
+
+    Args:
+        codes: 期货合约代码列表
+
+    Returns:
+        Dict[str, FutureSnapshotData]
+
+    Examples:
+        >>> import finshare as fs
+        >>> snapshots = fs.get_batch_future_snapshots(['IF2409', 'CU2409'])
+    """
+    _lazy_import_future()
+    return _get_batch_future_snapshots(codes)
+
+
+# 基金数据 (延迟导入，避免循环依赖)
+_get_fund_nav = None
+_get_fund_info = None
+_get_fund_list = None
+
+
+def _lazy_import_fund():
+    """延迟导入基金数据模块"""
+    global _get_fund_nav, _get_fund_info, _get_fund_list
+    if _get_fund_nav is None:
+        from finshare.stock.fund import get_fund_nav, get_fund_info, get_fund_list
+        _get_fund_nav = get_fund_nav
+        _get_fund_info = get_fund_info
+        _get_fund_list = get_fund_list
+
+
+def get_fund_nav(
+    code: str,
+    start_date: str = None,
+    end_date: str = None,
+):
+    """
+    获取基金净值数据
+
+    Args:
+        code: 基金代码 (如 161039, 000001)
+        start_date: 开始日期 (YYYY-MM-DD)
+        end_date: 结束日期 (YYYY-MM-DD)
+
+    Returns:
+        List[FundData] 基金净值数据列表
+
+    Examples:
+        >>> import finshare as fs
+        >>> data = fs.get_fund_nav('161039', '2024-01-01', '2024-01-31')
+        >>> for item in data:
+        >>>     print(f"{item.nav_date}: nav={item.nav}")
+    """
+    _lazy_import_fund()
+    return _get_fund_nav(code, start_date, end_date)
+
+
+def get_fund_info(code: str):
+    """
+    获取基金基本信息
+
+    Args:
+        code: 基金代码
+
+    Returns:
+        基金信息字典
+
+    Examples:
+        >>> import finshare as fs
+        >>> info = fs.get_fund_info('161039')
+    """
+    _lazy_import_fund()
+    return _get_fund_info(code)
+
+
+def get_fund_list(market: str = "all"):
+    """
+    获取基金列表
+
+    Args:
+        market: 市场类型 (all: 全部, sh: 上海, sz: 深圳)
+
+    Returns:
+        基金列表
+
+    Examples:
+        >>> import finshare as fs
+        >>> funds = fs.get_fund_list()
+    """
+    _lazy_import_fund()
+    return _get_fund_list(market)
+
+
+# 证券列表 (延迟导入)
+_get_stock_list = None
+_get_etf_list = None
+_get_lof_list = None
+_get_future_list = None
+
+
+def _lazy_import_list():
+    """延迟导入列表模块"""
+    global _get_stock_list, _get_etf_list, _get_lof_list, _get_future_list
+    if _get_stock_list is None:
+        from finshare.stock.list import get_stock_list, get_etf_list, get_lof_list, get_future_list
+        _get_stock_list = get_stock_list
+        _get_etf_list = get_etf_list
+        _get_lof_list = get_lof_list
+        _get_future_list = get_future_list
+
+
+def get_stock_list(market: str = "all"):
+    """
+    获取A股股票列表
+
+    Args:
+        market: 市场类型 (all: 全部, sh: 上海, sz: 深圳)
+
+    Returns:
+        List[Dict] 股票列表
+
+    Examples:
+        >>> import finshare as fs
+        >>> stocks = fs.get_stock_list()
+        >>> print(f"共有 {len(stocks)} 只股票")
+    """
+    _lazy_import_list()
+    return _get_stock_list(market)
+
+
+def get_etf_list():
+    """
+    获取ETF基金列表
+
+    Returns:
+        List[Dict] ETF列表
+
+    Examples:
+        >>> import finshare as fs
+        >>> etfs = fs.get_etf_list()
+        >>> print(f"共有 {len(etfs)} 只ETF")
+    """
+    _lazy_import_list()
+    return _get_etf_list()
+
+
+def get_lof_list():
+    """
+    获取LOF基金列表
+
+    Returns:
+        List[Dict] LOF列表
+
+    Examples:
+        >>> import finshare as fs
+        >>> lofs = fs.get_lof_list()
+        >>> print(f"共有 {len(lofs)} 只LOF")
+    """
+    _lazy_import_list()
+    return _get_lof_list()
+
+
+def get_future_list():
+    """
+    获取期货列表
+
+    Returns:
+        List[Dict] 期货列表
+
+    Examples:
+        >>> import finshare as fs
+        >>> futures = fs.get_future_list()
+        >>> print(f"共有 {len(futures)} 个期货合约")
+    """
+    _lazy_import_list()
+    return _get_future_list()
+
+
 # 工具函数
 from finshare.utils import (  # noqa: E402
     validate_stock_code,
@@ -331,6 +574,12 @@ __all__ = [
     "FrequencyType",
     "AdjustmentType",
     "MarketType",
+    # 期货数据模型
+    "FutureData",
+    "FutureSnapshotData",
+    "FutureExchange",
+    # 基金数据模型
+    "FundData",
     # 财务数据
     "get_income",
     "get_balance",
@@ -348,6 +597,19 @@ __all__ = [
     "get_historical_data",
     "get_snapshot_data",
     "get_batch_snapshots",
+    # 期货数据
+    "get_future_kline",
+    "get_future_snapshot",
+    "get_batch_future_snapshots",
+    # 基金数据
+    "get_fund_nav",
+    "get_fund_info",
+    "get_fund_list",
+    # 证券列表
+    "get_stock_list",
+    "get_etf_list",
+    "get_lof_list",
+    "get_future_list",
     # 工具函数
     "validate_stock_code",
     "validate_date",

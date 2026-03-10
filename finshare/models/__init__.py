@@ -17,6 +17,12 @@ from finshare.models.data_models import (
     MarketType,
     FrequencyType,
     MinuteData,
+    # 期货数据模型
+    FutureData,
+    FutureSnapshotData,
+    FutureExchange,
+    # 基金数据模型
+    FundData,
 )
 
 # 为了兼容性，提供别名
@@ -32,6 +38,12 @@ __all__ = [
     "MarketType",
     "FrequencyType",
     "MinuteData",
+    # 期货数据模型
+    "FutureData",
+    "FutureSnapshotData",
+    "FutureExchange",
+    # 基金数据模型
+    "FundData",
     # 别名
     "KLineData",
     "StockInfo",
