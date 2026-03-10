@@ -1,12 +1,9 @@
-# GitHub Pages Configuration
+# GitHub Pages Configuration for Sphinx
 title: finshare
 description: 专业的金融数据获取工具库
-theme: jekyll-theme-minimal
 
 # Build settings
-markdown: kramdown
-plugins:
-  - jekyll-relative-links
+remote_theme: sphinx-theme/readthedocs-doc-theme
 
 # Exclude unnecessary files
 exclude:
@@ -19,7 +16,12 @@ exclude:
   - setup.py
   - pyproject.toml
 
-# Relative links
-relative_links:
-  enabled: true
-  collections: true
+# Markdown support
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - fenced_code
+
+# Pagination
+show_authors: true
