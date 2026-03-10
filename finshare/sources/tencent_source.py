@@ -106,6 +106,11 @@ class TencentDataSource(BaseDataSource):
 
                     stock_data = data["data"].get(market_code, {})
 
+                    # 如果没找到，尝试添加 hk 前缀（港股）
+                    if not stock_data and market_code.startswith("sh"):
+                        hk_code = "hk" + market_code[2:]
+                        stock_data = data["data"].get(hk_code, {})
+
                     # 根据复权类型获取数据
                     fq_match = re.search(r"kline_day(qfq|hfq)", response_data)
                     if fq_match:
@@ -362,18 +367,27 @@ class TencentDataSource(BaseDataSource):
         # 确保使用完整代码
         full_code = self._ensure_full_code(code)
 
+        # 先移除 .HK .SH .SZ .BJ .US 后缀
+        clean_code = full_code.replace(".HK", "").replace(".SH", "").replace(".SZ", "").replace(".BJ", "").replace(".US", "")
+
         # 移除可能的交易所前缀
-        clean_code = full_code.replace("SH", "").replace("SZ", "").replace("BJ", "")
+        clean_code = clean_code.replace("HK", "").replace("SH", "").replace("SZ", "").replace("BJ", "").replace("US", "")
 
         # 判断市场并添加前缀
-        if full_code.startswith("SH") or (clean_code and clean_code[0] in ["6", "5"]):
+        if full_code.startswith("HK") or ".HK" in full_code:
+            return f"hk{clean_code}"
+        elif full_code.startswith("US") or ".US" in full_code:
+            return f"us{clean_code}"
+        elif full_code.startswith("SH") or ".SH" in full_code:
             return f"sh{clean_code}"
-        elif full_code.startswith("SZ") or (clean_code and clean_code[0] in ["0", "1", "2", "3"]):
+        elif full_code.startswith("SZ") or ".SZ" in full_code:
             return f"sz{clean_code}"
-        elif full_code.startswith("BJ") or (
-            clean_code and clean_code[0] == "9" and not clean_code.startswith("90")
-        ):
+        elif full_code.startswith("BJ") or ".BJ" in full_code:
             return f"bj{clean_code}"
+        elif clean_code and clean_code[0] in ["6", "5"]:
+            return f"sh{clean_code}"
+        elif clean_code and clean_code[0] in ["0", "1", "2", "3"]:
+            return f"sz{clean_code}"
         else:
             return code
 

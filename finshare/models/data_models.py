@@ -161,6 +161,20 @@ class SnapshotData(BaseModel):
             raise ValueError("时间戳不能晚于当前时间")
         return v
 
+    @property
+    def change(self) -> Optional[float]:
+        """涨跌额"""
+        if self.last_price and self.prev_close:
+            return round(self.last_price - self.prev_close, 2)
+        return None
+
+    @property
+    def change_pct(self) -> Optional[float]:
+        """涨跌幅(%)"""
+        if self.last_price and self.prev_close and self.prev_close != 0:
+            return round((self.last_price - self.prev_close) / self.prev_close * 100, 2)
+        return None
+
 
 class DataSourceStatus(BaseModel):
     source_name: str

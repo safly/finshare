@@ -312,11 +312,11 @@ class BaseDataSource(ABC):
 
         支持输入格式:
         - sz.159915 / sh.600519 (BaoStock格式) -> 159915.SH / 159915.SZ
-        - SZ159915 / SH600519 (标准格式) -> 保持不变
-        - 159915 / 600519 (纯数字) -> 自动添加前缀
-        - 000001.SZ / 600001.SH -> 保持不变
+        - SZ159915 / SH600519 / HK00700 / USAAPL (标准格式) -> 保持不变
+        - 159915 / 600519 / 00700 / AAPL (纯数字/字母) -> 自动添加前缀
+        - 000001.SZ / 600001.SH / 00700.HK / AAPL.US -> 保持不变
 
-        返回格式: 000001.SZ / 600001.SH
+        返回格式: 000001.SZ / 600001.SH / 00700.HK / AAPL.US
         """
         if not code:
             return code
@@ -327,7 +327,7 @@ class BaseDataSource(ABC):
         if "." in code:
             return code
 
-        # 处理 SZ/SH/BJ 前缀 (无点)
+        # 处理 SZ/SH/BJ/HK/US 前缀 (无点)
         prefix_map = {"SZ": "SZ", "SH": "SH", "BJ": "BJ", "HK": "HK", "US": "US"}
         for prefix, market in prefix_map.items():
             if code.startswith(prefix):
@@ -336,6 +336,9 @@ class BaseDataSource(ABC):
 
         # 纯数字代码，根据首位判断市场
         if code.isdigit():
+            # 港股纯数字 (4-5位，如 00700, 09988)
+            if len(code) >= 4 and len(code) <= 5 and code.startswith("0"):
+                return f"{code}.HK"
             first = code[0]
             if first in ["6", "5"]:
                 return f"{code}.SH"
@@ -346,6 +349,10 @@ class BaseDataSource(ABC):
                     return f"{code}.SH"
                 else:
                     return f"{code}.BJ"
+
+        # 美股纯字母代码 (如 AAPL, GOOG)
+        if code.isalpha() and len(code) <= 5:
+            return f"{code}.US"
 
         return code  # 无法确定，返回原样
 

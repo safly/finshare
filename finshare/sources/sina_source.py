@@ -268,9 +268,13 @@ class SinaDataSource(BaseDataSource):
     def _convert_code_format(self, code: str) -> str:
         """转换代码格式为新浪API格式"""
         full_code = self._ensure_full_code(code)
-        clean_code = full_code.replace("SH", "").replace("SZ", "").replace("BJ", "")
+        clean_code = full_code.replace("SH", "").replace("SZ", "").replace("BJ", "").replace("HK", "").replace("US", "")
 
-        if full_code.startswith("SH") or (clean_code and clean_code[0] in ["6", "5"]):
+        if full_code.startswith("HK"):
+            return f"hk{clean_code}"
+        elif full_code.startswith("US"):
+            return f"us{clean_code}"
+        elif full_code.startswith("SH") or (clean_code and clean_code[0] in ["6", "5"]):
             return f"sh{clean_code}"
         elif full_code.startswith("SZ") or (clean_code and clean_code[0] in ["0", "1", "2", "3"]):
             return f"sz{clean_code}"
@@ -278,8 +282,6 @@ class SinaDataSource(BaseDataSource):
             clean_code and clean_code[0] == "9" and not clean_code.startswith("90")
         ):
             return f"bj{clean_code}"
-        elif code.startswith("hk"):
-            return f"rt_hk{clean_code.replace('hk', '')}"
         else:
             return code
 
