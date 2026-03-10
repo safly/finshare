@@ -57,3 +57,4 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+docs/_build/
