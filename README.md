@@ -241,6 +241,31 @@ if __name__ == '__main__':
 | [finshare-skills](https://github.com/finvfamily/finshare-skills) | OpenClaw AI 助手技能 |
 | [meepoquant](https://meepoquant.com) | 免费量化回测平台 |
 
+## 🙏 致谢
+
+### 参照的开源项目
+
+本项目在设计思路和 API 风格上参考了以下优秀的开源项目：
+
+| 项目 | 描述 |
+|------|------|
+| [akshare](https://github.com/akfamily/akshare) | 专业的金融数据开源库，为本项目提供了重要参考 |
+
+### 数据源网站
+
+感谢以下数据源网站提供的免费 API 接口：
+
+| 数据源 | 用途 |
+|--------|------|
+| 东方财富 | A股行情、财务数据、龙虎榜、融资融券 |
+| 腾讯财经 | 港股行情、实时报价 |
+| 新浪财经 | 港股行情、实时报价 |
+| 通达信 | 行情数据 |
+| BaoStock | 证券数据 |
+| 天天基金 | 基金净值数据 |
+
+---
+
 ## 🤝 贡献
 
 欢迎贡献代码！查看 [贡献指南](CONTRIBUTING.md)。
